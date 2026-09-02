@@ -1,30 +1,30 @@
-# Lerneckenprojekt ? Belegungserkennung
+# Lerneckenprojekt - Belegungserkennung
 
-Belegungserkennung fÅr die Lernecken am Standort Fischerhof der Hochschule Hannover. Ein ESP-32 misst mit einem Infrarot-Sensor die Belegung der vier SitzplÑtze einer Lernecke und schickt sie an Home Assistant. Eine îffentlich zugÑngliche Webseite zeigt an, welche PlÑtze frei (grÅn) oder besetzt (rot) sind.
+Belegungserkennung f√ºr die Lernecken am Standort Fischerhof der Hochschule Hannover. Ein ESP-32 misst mit einem Infrarot-Sensor die Belegung der vier Sitzpl√§tze einer Lernecke und schickt sie an Home Assistant. Eine √∂ffentlich zug√§ngliche Webseite zeigt an, welche Pl√§tze frei (gr√ºn) oder besetzt (rot) sind.
 
 **Live-Webseite:** https://hidd.christianwill.de/local/index.html
 Einzelne Etage direkt: https://hidd.christianwill.de/local/index.html#/etage/1B.1
 
 > Aktuell ist nur die Lernecke **1B.1.31** angebunden. Alle anderen Lernecken auf der Website sind Platzhalter.
 
-## Funktionsprinzip (KurzÅberblick)
+## Funktionsprinzip (Kurz√ºberblick)
 
-Ein ESP-32 mit AMG8833-Infrarot-Sensor teilt die 64 Pixel in vier Zonen (= vier SitzplÑtze) auf und bestimmt pro Platz, ob er frei oder besetzt ist. Die Belegung wird per HTTPS-POST an einen Home-Assistant-Webhook geschickt, dort in einer `daten.json` gesammelt und von der Webseite dargestellt.
+Ein ESP-32 mit AMG8833-Infrarot-Sensor teilt die 64 Pixel in vier Zonen (= vier Sitzpl√§tze) auf und bestimmt pro Platz, ob er frei oder besetzt ist. Die Belegung wird per HTTPS-POST an einen Home-Assistant-Webhook geschickt, dort in einer `daten.json` gesammelt und von der Webseite dargestellt.
 
-Zwischen ESP und Webseite steht dabei immer eine Datei (`daten.json`), sodass sich jeder Teil einzeln Ñndern und testen lÑsst.
+Zwischen ESP und Webseite steht dabei immer eine Datei (`daten.json`), sodass sich jeder Teil einzeln √§ndern und testen l√§sst.
 
 ## Dokumentation
 
-**Alle wichtigen Informationen stehen im Handbuch** ([`lernecken-handbuch.pdf`](lernecken-handbuch.pdf)). Bitte vor énderungen oder Inbetriebnahme dort nachlesen. Es beschreibt im Detail:
+**Alle wichtigen Informationen stehen im Handbuch** ([`lernecken-handbuch.pdf`](lernecken-handbuch.pdf)). Bitte vor √Ñnderungen oder Inbetriebnahme dort nachlesen. Es beschreibt im Detail:
 
-- **Hardware** ? verwendete Bauteile und Montage
-- **Datenweg** ? wie die Daten vom ESP bis zur Webseite laufen
-- **ESP-32 Funktionsweise** ? IR-Sensor AMG8833 und die Belegungserkennung (ZustÑnde EMPTY / CHANGING / HUMAN)
-- **Home Assistant** ? Skripte, Dateien, Automationen und `configuration.yaml`
-- **Neue Lernecke hinzufÅgen** ? Schritt fÅr Schritt
-- **Wichtige Werte zum Anpassen** ? alle Parameter am ESP und in Home Assistant
-- **Fehlersuche** ? hÑufige Symptome, Ursachen und was zu prÅfen ist
+- **Hardware** ‚Äì verwendete Bauteile und Montage
+- **Datenweg** ‚Äì wie die Daten vom ESP bis zur Webseite laufen
+- **ESP-32 Funktionsweise** ‚Äì IR-Sensor AMG8833 und die Belegungserkennung (Zust√§nde EMPTY / CHANGING / HUMAN)
+- **Home Assistant** ‚Äì Skripte, Dateien, Automationen und `configuration.yaml`
+- **Neue Lernecke hinzuf√ºgen** ‚Äì Schritt f√ºr Schritt
+- **Wichtige Werte zum Anpassen** ‚Äì alle Parameter am ESP und in Home Assistant
+- **Fehlersuche** ‚Äì h√§ufige Symptome, Ursachen und was zu pr√ºfen ist
 
 ## Autoren
 
-Mauro Holzki & Philippe Simons, Hochschule Hannover FakultÑt 1
+Mauro Holzki & Philippe Simons, Hochschule Hannover Fakult√§t 1
