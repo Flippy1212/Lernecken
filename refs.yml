@@ -1,0 +1,54 @@
+amg8833-seeed:
+  type: web
+  title: "Grove — Infrared Temperature Sensor Array (AMG8833)"
+  author: "Seeed Studio"
+  url:
+    value: https://wiki.seeedstudio.com/Grove-Infrared_Temperature_Sensor_Array-AMG8833/
+    date: 2026-09-02
+
+amg8833-datenblatt:
+  type: report
+  title: "Grid-EYE AMG8833 Specifications (Reference)"
+  author: "Panasonic / Adafruit Industries"
+  url:
+    value: https://cdn-learn.adafruit.com/assets/assets/000/043/261/original/Grid-EYE_SPECIFICATIONS%28Reference%29.pdf
+    date: 2026-09-02
+
+ha-webhook:
+  type: web
+  title: "Automation Trigger — Webhook Trigger"
+  author: "Home Assistant"
+  url:
+    value: https://www.home-assistant.io/docs/automation/trigger/
+    date: 2026-09-02
+
+ha-shell-command:
+  type: web
+  title: "Shell Command Integration"
+  author: "Home Assistant"
+  url:
+    value: https://www.home-assistant.io/integrations/shell_command/
+    date: 2026-09-02
+
+esp32-s3:
+  type: report
+  title: "ESP32-S3 — Produktübersicht und Datenblatt"
+  author: "Espressif Systems"
+  url:
+    value: https://www.espressif.com/en/products/socs/esp32-s3
+    date: 2026-09-02
+
+heltec-wifi-lora32-v3:
+  type: web
+  title: "WiFi LoRa 32 (V3) — ESP32-S3 + SX1262 LoRa Node"
+  author: "Heltec Automation"
+  url:
+    value: https://heltec.org/project/wifi-lora-32-v3/
+    date: 2026-09-02
+
+alter-projektbericht:
+  type: report
+  title: "Studienprojekt: Lerneckenfinder"
+  author: ["Farrah, Riadh", "Chamam, Mohamed Dhia", "Saidani, Slim"]      # Autor(en) des alten Berichts
+  date: 2025                          
+  note: "Unveröffentlichter Studienprojektbericht, Hochschule Hannover"

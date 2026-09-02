@@ -1,0 +1,456 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#29B6E6">
+<meta name="description" content="Freie Plätze in den Lernecken, Hochschule Hannover">
+<title>Lernecken – Hochschule Hannover</title>
+ 
+<script>
+/* Fängt Skriptfehler ab und zeigt sie unten an, statt weißer Seite. */
+window.addEventListener("error", function(e){
+  var box = document.getElementById("fehlerbox");
+  if(!box) return;
+  box.style.display = "block";
+  box.textContent = "Skriptfehler: " + (e.message || e) + "  (Zeile " + (e.lineno || "?") + ")";
+});
+</script>
+ 
+<style>
+:root{
+  --f1:#29B6E6; --f1-tief:#0B7CA6; --f1-mittel:#1FA3D4; --f1-blass:#E8F7FD;
+  --frei:#147A3A; --frei-bg:#E8F5ED;
+  --teil:#9E5800; --teil-bg:#FDF1E0;
+  --voll:#C1272D; --voll-bg:#FBEAEA;
+  --offline:#6B6F76; --offline-bg:#F0F1F3;
+  --schwarz:#101114; --grau:#5C6068; --linie:#DCDFE4; --flaeche:#F6F7F9;
+  --holz:#E4CFAE; --moebel:#DDE0E5;
+  --rand:22px;
+  --seite:max(16px, env(safe-area-inset-left, 0px));
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%}
+body{
+  font-family:"Inter","Segoe UI",Helvetica,Arial,sans-serif;
+  color:var(--schwarz);background:#fff;-webkit-font-smoothing:antialiased;
+  font-size:16px;line-height:1.5;display:flex;flex-direction:column;
+}
+.zahl{font-variant-numeric:tabular-nums}
+a{color:inherit;-webkit-tap-highlight-color:transparent}
+:focus-visible{outline:3px solid var(--f1-tief);outline-offset:2px}
+ 
+/* ============ Kopf ============ */
+.kopf-oben{display:flex;align-items:center;gap:14px;padding:12px var(--seite);border-bottom:1px solid var(--linie)}
+.logo{width:34px;height:34px;flex:0 0 34px;position:relative}
+.logo::before{content:"H";position:absolute;inset:0;font-weight:800;font-size:30px;line-height:28px;color:var(--f1)}
+.logo::after{content:"";position:absolute;left:0;bottom:0;width:26px;height:5px;background:var(--f1)}
+.wortmarke{font-size:12px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;line-height:1.35}
+.wortmarke span{display:block;font-weight:400;text-transform:none;letter-spacing:0;color:var(--grau)}
+ 
+.kopf-band{background:var(--f1);padding:14px var(--seite);display:flex;align-items:center;gap:14px;color:#fff}
+.burger{display:none;background:none;border:1.5px solid rgba(16,17,20,.4);color:var(--schwarz);
+  width:44px;height:44px;flex:0 0 44px;cursor:pointer;font-size:20px;line-height:1}
+.seiten-titel{font-size:24px;font-weight:700;line-height:1.1;letter-spacing:-.01em}
+.seiten-unter{margin-left:auto;font-size:13px;font-weight:600}
+ 
+.raster{display:grid;grid-template-columns:380px 1fr;flex:1 1 auto;min-height:0}
+ 
+/* ============ Seitenleiste ============ */
+.leiste{border-right:1px solid var(--linie);overflow-y:auto;min-height:0}
+.bilanz{background:var(--f1-blass);border-bottom:1px solid var(--linie);padding:20px var(--rand)}
+.bilanz-zahl{font-size:40px;font-weight:800;line-height:1;color:var(--f1-tief);letter-spacing:-.02em}
+.bilanz-zahl small{font-size:18px;font-weight:600;color:var(--schwarz);letter-spacing:0}
+.bilanz-text{font-size:14px;color:var(--grau);margin-top:8px}
+.stand{font-size:12px;color:var(--grau);margin-top:12px;display:flex;align-items:center;gap:7px}
+.puls{width:8px;height:8px;border-radius:50%;background:var(--f1-mittel);flex:0 0 8px}
+@media (prefers-reduced-motion:no-preference){
+  .puls{animation:puls 2.4s ease-in-out infinite}
+  @keyframes puls{0%,100%{opacity:1}50%{opacity:.3}}
+}
+.puls.tot{background:var(--offline);animation:none}
+ 
+.gebaeude{border-bottom:1px solid var(--linie)}
+.geb-kopf{display:flex;align-items:center;gap:12px;padding:9px var(--rand);color:#fff;background:var(--f1-mittel);position:sticky;top:0;z-index:2}
+.geb-kennung{font-size:20px;font-weight:800;line-height:1;background:rgba(255,255,255,.22);padding:6px 10px;letter-spacing:-.01em}
+.geb-name{font-size:12px;font-weight:700;letter-spacing:.09em;text-transform:uppercase}
+.geb-summe{margin-left:auto;font-size:13px;font-weight:600}
+ 
+.liste{list-style:none}
+.etage{display:flex;align-items:center;justify-content:space-between;gap:12px;
+  min-height:56px;border-top:1px solid var(--linie);padding:12px var(--rand);
+  cursor:pointer;transition:background .12s;text-decoration:none}
+.liste li:first-child .etage{border-top:0}
+.etage:hover{background:var(--flaeche)}
+.etage.aktiv{background:var(--f1-blass);box-shadow:inset 4px 0 0 var(--f1-mittel)}
+.etage-name{font-weight:700;font-size:15px}
+.etage-info{font-size:12.5px;color:var(--grau);margin-top:1px}
+ 
+.plakette{font-size:12.5px;font-weight:700;padding:4px 10px;white-space:nowrap}
+.p-frei{background:var(--frei-bg);color:var(--frei)}
+.p-teil{background:var(--teil-bg);color:var(--teil)}
+.p-voll{background:var(--voll-bg);color:var(--voll)}
+.p-offline{background:var(--offline-bg);color:var(--offline)}
+ 
+/* ============ Inhaltsspalte ============ */
+.inhalt{overflow-y:auto;min-height:0;padding:20px var(--seite) 32px}
+.spalte{max-width:1200px;margin:0 auto}
+ 
+.ort-kopf{display:flex;align-items:center;gap:16px;padding-bottom:16px;border-bottom:2px solid var(--f1-mittel)}
+.ort-kennung{font-size:28px;font-weight:800;line-height:1;color:#fff;padding:10px 14px;background:var(--f1-mittel);letter-spacing:-.01em}
+.ort-titel{font-size:26px;font-weight:700;line-height:1.15;letter-spacing:-.01em}
+.ort-meta{font-size:13px;color:var(--grau);margin-top:2px}
+.ort-bilanz{margin-left:auto;text-align:right}
+.ort-bilanz b{font-size:32px;font-weight:800;color:var(--f1-tief);display:block;line-height:1;letter-spacing:-.02em}
+.ort-bilanz span{font-size:13px;color:var(--grau)}
+ 
+.etagen-wahl{display:flex;flex-wrap:wrap;gap:8px;margin-top:16px}
+.etagen-wahl a{display:flex;align-items:center;min-height:44px;padding:0 16px;border:1px solid var(--linie);
+  font-size:14px;font-weight:600;text-decoration:none;color:var(--grau)}
+.etagen-wahl a:hover{background:var(--flaeche)}
+.etagen-wahl a.aktiv{background:var(--f1-blass);border-color:var(--f1-mittel);color:var(--f1-tief)}
+ 
+.ecken-raster{display:grid;gap:20px;margin-top:20px;grid-template-columns:repeat(auto-fit,minmax(320px,1fr))}
+ 
+.karte{border:1px solid var(--linie)}
+.karte-kopf{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:13px 16px;border-bottom:1px solid var(--linie)}
+.karte-name{font-weight:700;font-size:16px}
+.karte-ort{font-size:12.5px;color:var(--grau)}
+.plan{padding:16px;background:var(--flaeche);display:flex;justify-content:center}
+.plan svg{width:100%;max-width:420px;height:auto}
+.karte-fuss{padding:10px 16px;font-size:12px;color:var(--grau);display:flex;align-items:center;gap:7px;border-top:1px solid var(--linie)}
+ 
+.sitz-frei   rect{fill:var(--frei-bg);stroke:var(--frei)}
+.sitz-frei   .sitz-status{fill:var(--frei)}
+.sitz-belegt rect{fill:var(--voll-bg);stroke:var(--voll)}
+.sitz-belegt .sitz-status{fill:var(--voll)}
+.sitz-leer   rect{fill:var(--offline-bg);stroke:#C3C7CD;stroke-dasharray:5 4}
+.sitz-leer   .sitz-status{fill:var(--offline)}
+.sitz-name{fill:var(--grau)}
+.sitz-status{font-weight:700}
+.moebel{fill:var(--moebel)} .tisch{fill:var(--holz)} .tisch-mitte{fill:#D2D6DB}
+ 
+.hinweis{margin-top:20px;font-size:12.5px;color:var(--grau);background:var(--flaeche);border-left:4px solid var(--f1);padding:10px 14px}
+ 
+.fehlerbox{display:none;position:fixed;left:0;right:0;bottom:0;z-index:60;background:var(--voll-bg);color:var(--voll);
+  border-top:3px solid var(--voll);font-size:13px;line-height:1.45;padding:12px 16px;
+  padding-bottom:calc(12px + env(safe-area-inset-bottom, 0px));font-family:ui-monospace,Menlo,Consolas,monospace}
+ 
+@media (max-width:860px){
+  .raster{grid-template-columns:1fr}
+  .burger{display:block}
+  .leiste{position:fixed;top:0;left:0;bottom:0;width:min(340px,88vw);z-index:20;background:#fff;
+    transform:translateX(-100%);transition:transform .22s ease;box-shadow:4px 0 24px rgba(16,17,20,.2)}
+  .leiste.offen{transform:translateX(0)}
+  .seiten-titel{font-size:21px}
+  .seiten-unter{display:none}
+  .inhalt{padding:16px var(--seite) calc(28px + env(safe-area-inset-bottom, 0px))}
+  .ort-kopf{flex-wrap:wrap;gap:12px}
+  .ort-kennung{font-size:24px;padding:8px 11px}
+  .ort-titel{font-size:22px}
+  .ort-bilanz{margin-left:0;text-align:left;width:100%;display:flex;align-items:baseline;gap:9px}
+  .ort-bilanz b{font-size:28px}
+  .ecken-raster{grid-template-columns:1fr;gap:16px;margin-top:16px}
+  .abdunkeln{position:fixed;inset:0;z-index:15;background:rgba(16,17,20,.45);opacity:0;pointer-events:none;transition:opacity .22s}
+  .abdunkeln.sichtbar{opacity:1;pointer-events:auto}
+}
+</style>
+</head>
+<body>
+ 
+<div class="kopf-oben">
+  <div class="logo" aria-hidden="true"></div>
+  <div class="wortmarke">Hochschule Hannover
+    <span>Standort: Linden Fischerhof</span>
+  </div>
+</div>
+ 
+<div class="kopf-band">
+  <button class="burger" id="burger" aria-label="Menü öffnen" aria-expanded="false" aria-controls="leiste">☰</button>
+  <div class="seiten-titel">Lernecken</div>
+  <div class="seiten-unter">Freie Plätze in Echtzeit</div>
+</div>
+ 
+<div class="raster">
+  <nav class="leiste" id="leiste" aria-label="Stockwerke nach Gebäude"></nav>
+  <main class="inhalt" id="inhalt"></main>
+</div>
+<div class="abdunkeln" id="abdunkeln" aria-hidden="true"></div>
+<div class="fehlerbox" id="fehlerbox"></div>
+ 
+<script>
+/* =====================================================================
+   1. STRUKTUR (fest)
+   Welche Gebäude, Etagen und Lernecken es gibt. Die Belegung kommt aus
+   daten.json; verknüpft wird über "esp" - muss mit der vom ESP
+   gesendeten ID übereinstimmen. Neue Lernecke = ein Eintrag hier.
+   ===================================================================== */
+const STRUKTUR = [
+  { kennung:"1A", etagen:[
+    { id:"1A.1", name:"1. Obergeschoss", ecken:[
+      {name:"Lernecke 1", esp:"1A001"},
+      {name:"Lernecke 2", esp:"1A002"}
+    ]}
+  ]},
+  { kennung:"1B", etagen:[
+    { id:"1B.0",  name:"Erdgeschoss", ecken:[
+      {name:"Lernecke 1", esp:"1B001"},
+      {name:"Lernecke 2", esp:"1B002"}
+    ]},
+    { id:"1B.1", name:"1. Obergeschoss", ecken:[
+      {name:"Lernecke 1B.1.31", esp:"1B131"},
+      {name:"Lernecke 2", esp:"1B030"}
+    ]}
+  ]},
+  { kennung:"1H", etagen:[
+    { id:"1H.0",  name:"Erdgeschoss", ecken:[
+      {name:"Lernecke 1", esp:"1H001"},
+      {name:"Lernecke 2", esp:"1H002"}
+    ]},
+    { id:"1H.1", name:"1. Obergeschoss", ecken:[
+      {name:"Lernecke 1", esp:"1H003"},
+      {name:"Lernecke 2", esp:"1H004"}
+    ]}
+  ]}
+];
+ 
+const QUELLE   = "daten.json";   // liegt neben dieser Datei
+const ABRUF_MS = 30000;         // alle ... neu laden
+let   AKTUALISIERT = "wird geladen …";
+ 
+/* =====================================================================
+   2. HILFSFUNKTIONEN
+   ===================================================================== */
+const mobilAbfrage = window.matchMedia("(max-width: 860px)");
+const istMobil = () => mobilAbfrage.matches;
+ 
+/* Zeitstempel -> "vor X Minuten". Zählt im Browser live weiter. */
+function seitWann(iso){
+  if(!iso) return "noch nie";
+  let sek = Math.round((Date.now() - new Date(iso).getTime()) / 1000);
+  if(sek < 0) sek = 0;
+  if(sek <  10) return "gerade eben";
+  if(sek <  60) return "vor " + sek + " Sekunden";
+  if(sek < 120) return "vor einer Minute";
+  if(sek < 3600) return "vor " + Math.round(sek/60) + " Minuten";
+  return new Date(iso).toLocaleString("de-DE",
+    {day:"2-digit",month:"2-digit",year:"numeric",hour:"2-digit",minute:"2-digit"}) + " Uhr";
+}
+ 
+function statusVon(ecke){
+  if(!ecke.plaetze) return {klasse:"offline", kurz:"Keine Daten", frei:null};
+  const frei = ecke.plaetze.filter(p => p === 0).length;
+  if(frei === 0) return {klasse:"voll", kurz:"Voll belegt", frei:0};
+  if(frei === 1) return {klasse:"teil", kurz:"1 frei",      frei:1};
+  return {klasse:"frei", kurz:frei + " frei", frei:frei};
+}
+function freiIn(ecken){ return ecken.reduce((s,e) => s + (statusVon(e).frei || 0), 0); }
+function hatDaten(ecken){ return ecken.some(e => e.plaetze); }
+function alleEcken(){ return STRUKTUR.flatMap(g => g.etagen.flatMap(et => et.ecken)); }
+function findeEtage(id){
+  for(const g of STRUKTUR) for(const et of g.etagen) if(et.id === id) return {g, et};
+  return null;
+}
+function sammelStatus(ecken){
+  if(!hatDaten(ecken)) return {klasse:"offline", text:"Keine Daten"};
+  const frei = freiIn(ecken);
+  if(frei === 0) return {klasse:"voll", text:"Voll belegt"};
+  if(frei === 1) return {klasse:"teil", text:"1 frei"};
+  return {klasse:"frei", text:frei + " frei"};
+}
+ 
+/* =====================================================================
+   3. MESSWERTE HOLEN
+   ===================================================================== */
+async function holeDaten(){
+  try{
+    const antwort = await fetch(QUELLE + "?t=" + Date.now(), {cache:"no-store"});
+    if(!antwort.ok) throw new Error("HTTP " + antwort.status);
+    const roh = await antwort.json();
+    alleEcken().forEach(e => {
+      const m = roh.lernecken ? roh.lernecken[e.esp] : null;
+      e.plaetze = m && m.plaetze ? m.plaetze : null;
+      e.kontakt = m ? m.kontakt : null;
+    });
+    AKTUALISIERT = seitWann(roh.aktualisiert);
+  }catch(err){
+    // Quelle nicht erreichbar: alles auf "keine Daten", nie alte Werte zeigen
+    alleEcken().forEach(e => { e.plaetze = null; e.kontakt = null; });
+    AKTUALISIERT = "Verbindung zur Datenquelle fehlt";
+  }
+  route();
+}
+ 
+/* =====================================================================
+   4. SEITENLEISTE
+   ===================================================================== */
+function zeichneLeiste(aktiveEtage){
+  const ecken = alleEcken();
+  const abschnitte = STRUKTUR.map(g => {
+    const gStatus = sammelStatus(g.etagen.flatMap(et => et.ecken));
+    const zeilen = g.etagen.map(et => {
+      const st = sammelStatus(et.ecken);
+      const n = et.ecken.length;
+      return `<li><a class="etage ${et.id === aktiveEtage ? "aktiv" : ""}" href="#/etage/${et.id}">
+        <div>
+          <div class="etage-name">${et.name}</div>
+          <div class="etage-info">${n} ${n === 1 ? "Lernecke" : "Lernecken"}</div>
+        </div>
+        <span class="plakette p-${st.klasse}">${st.text}</span>
+      </a></li>`;
+    }).join("");
+    return `<section class="gebaeude">
+      <div class="geb-kopf">
+        <div class="geb-kennung">${g.kennung}</div>
+        <div class="geb-name">Gebäude</div>
+        <div class="geb-summe zahl">${gStatus.text}</div>
+      </div>
+      <ul class="liste">${zeilen}</ul>
+    </section>`;
+  }).join("");
+ 
+  document.getElementById("leiste").innerHTML = `
+    <div class="bilanz">
+      <div class="bilanz-zahl zahl">${freiIn(ecken)} <small>Plätze frei</small></div>
+      <div class="bilanz-text">Erfasst: ${ecken.filter(e => e.plaetze).length} von ${ecken.length} Lernecken</div>
+      <div class="stand"><span class="puls"></span>Aktualisiert ${AKTUALISIERT}</div>
+    </div>${abschnitte}`;
+}
+ 
+/* =====================================================================
+   5. GRUNDRISS EINER LERNECKE
+   Sitz-Reihenfolge im JSON: platz1 unten links, platz2 oben links,
+   platz3 oben rechts, platz4 unten rechts. Die Tabelle bildet genau
+   das ab - Position und Beschriftung stehen hier zusammen.
+   ===================================================================== */
+const SITZE = [
+  { x:22,  y:178, name:"Unten links"  },  // platz1
+  { x:22,  y:28,  name:"Oben links"   },  // platz2
+  { x:322, y:28,  name:"Oben rechts"  },  // platz3
+  { x:322, y:178, name:"Unten rechts" }   // platz4
+];
+ 
+function grundriss(ecke){
+  const daten = !!ecke.plaetze;
+  const mobil = istMobil();
+  const gName = mobil ? 17 : 13;
+  const gStat = mobil ? 21 : 16;
+ 
+  const sitze = SITZE.map((s,i) => {
+    const klasse = !daten ? "sitz-leer" : (ecke.plaetze[i] ? "sitz-belegt" : "sitz-frei");
+    const text   = !daten ? "?"         : (ecke.plaetze[i] ? "Belegt" : "Frei");
+    const mx = s.x + 48;
+    const name = mobil
+      ? `<text class="sitz-name" font-size="${gName}" x="${mx}" y="${s.y+40}" text-anchor="middle">
+           ${s.name.split(" ").map((w,j) => `<tspan x="${mx}" ${j?'dy="19"':""}>${w}</tspan>`).join("")}</text>`
+      : `<text class="sitz-name" font-size="${gName}" x="${mx}" y="${s.y+50}" text-anchor="middle">${s.name}</text>`;
+    const yStat = mobil ? s.y+92 : s.y+75;
+    return `<g class="${klasse}">
+      <rect x="${s.x}" y="${s.y}" width="96" height="124" rx="7" stroke-width="2"/>
+      ${name}
+      <text class="sitz-status" font-size="${gStat}" x="${mx}" y="${yStat}" text-anchor="middle">${text}</text>
+    </g>`;
+  }).join("");
+ 
+  const blass = daten ? "" : ' opacity=".45"';
+  return `<svg viewBox="0 0 440 330" role="img" aria-label="Grundriss ${ecke.name}">
+    <title>${ecke.name}</title>
+    <rect class="moebel" x="16"  y="20" width="108" height="290" rx="10"/>
+    <rect class="moebel" x="316" y="20" width="108" height="290" rx="10"/>
+    <rect class="tisch"       x="158" y="45" width="124" height="240" rx="12"${blass}/>
+    <rect class="tisch-mitte" x="205" y="45" width="30"  height="240"${blass}/>
+    ${sitze}
+  </svg>`;
+}
+ 
+/* =====================================================================
+   6. ANSICHT: ein Stockwerk mit allen Lernecken
+   ===================================================================== */
+function zeigeEtage(id){
+  const treffer = findeEtage(id);
+  if(!treffer){ location.hash = "#/etage/" + STRUKTUR[0].etagen[0].id; return; }
+  const {g, et} = treffer;
+ 
+  const daten = hatDaten(et.ecken);
+  const frei  = freiIn(et.ecken);
+  const gross = daten ? frei : "–";
+  const unter = !daten ? "Keine Daten" : (frei === 1 ? "Platz frei" : "Plätze frei");
+  const n = et.ecken.length;
+ 
+  const wahl = g.etagen.length > 1
+    ? `<div class="etagen-wahl">${g.etagen.map(x =>
+        `<a class="${x.id === et.id ? "aktiv" : ""}" href="#/etage/${x.id}">${x.name}</a>`).join("")}</div>`
+    : "";
+ 
+  const karten = et.ecken.map(e => {
+    const st = statusVon(e);
+    const fuss = e.plaetze
+      ? `<span class="puls"></span>Aktualisiert ${seitWann(e.kontakt)}`
+      : `<span class="puls tot"></span>Zuletzt erreicht ${seitWann(e.kontakt)}`;
+    return `<section class="karte">
+      <div class="karte-kopf">
+        <div>
+          <div class="karte-name">${e.name}</div>
+          <div class="karte-ort">${et.name} · Gebäude ${g.kennung}</div>
+        </div>
+        <span class="plakette p-${st.klasse}">${st.kurz}</span>
+      </div>
+      <div class="plan">${grundriss(e)}</div>
+      <div class="karte-fuss">${fuss}</div>
+    </section>`;
+  }).join("");
+ 
+  document.getElementById("inhalt").innerHTML = `<div class="spalte">
+    <div class="ort-kopf">
+      <div class="ort-kennung">${g.kennung}</div>
+      <div>
+        <div class="ort-titel">${et.name}</div>
+        <div class="ort-meta">Gebäude ${g.kennung} · ${n} ${n === 1 ? "Lernecke" : "Lernecken"}</div>
+      </div>
+      <div class="ort-bilanz"><b class="zahl">${gross}</b><span>${unter}</span></div>
+    </div>
+    ${wahl}
+    <div class="ecken-raster">${karten}</div>
+    <p class="hinweis">Die Sensoren erkennen belegte Sitzplätze, keine abgestellten Taschen
+      oder kurz verlassene Plätze. Angaben ohne Gewähr.</p>
+  </div>`;
+  zeichneLeiste(et.id);
+}
+ 
+/* =====================================================================
+   7. ROUTING - nur Etagen-Seiten, Start in der ersten Etage
+   ===================================================================== */
+function route(){
+  const treffer = location.hash.match(/^#\/etage\/(.+)$/);
+  if(treffer) zeigeEtage(treffer[1]);
+  else location.hash = "#/etage/" + STRUKTUR[0].etagen[0].id;
+  schliesseLeiste();
+  document.getElementById("inhalt").scrollTop = 0;
+}
+ 
+/* ---- Menü-Schublade (mobil) ---- */
+const burger    = document.getElementById("burger");
+const leiste    = document.getElementById("leiste");
+const abdunkeln = document.getElementById("abdunkeln");
+function setzeLeiste(offen){
+  leiste.classList.toggle("offen", offen);
+  abdunkeln.classList.toggle("sichtbar", offen);
+  burger.setAttribute("aria-expanded", offen);
+  burger.setAttribute("aria-label", offen ? "Menü schließen" : "Menü öffnen");
+}
+function schliesseLeiste(){ setzeLeiste(false); }
+burger.addEventListener("click", () => setzeLeiste(!leiste.classList.contains("offen")));
+abdunkeln.addEventListener("click", schliesseLeiste);
+document.addEventListener("keydown", e => { if(e.key === "Escape") schliesseLeiste(); });
+ 
+/* ---- Start ---- */
+window.addEventListener("hashchange", route);
+if(mobilAbfrage.addEventListener) mobilAbfrage.addEventListener("change", route);
+ 
+route();                            // Grundgerüst sofort zeigen
+holeDaten();                        // echte Werte nachladen
+setInterval(holeDaten, ABRUF_MS);   // und zyklisch aktualisieren
+</script>
+ 
+</body>
+</html>

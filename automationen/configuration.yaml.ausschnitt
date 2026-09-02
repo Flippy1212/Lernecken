@@ -1,0 +1,23 @@
+# =====================================================================
+#  AUSSCHNITT fuer /config/configuration.yaml
+#  ---------------------------------------------------------------
+#  Diesen Block in die bestehende configuration.yaml einfuegen.
+#  Falls dort schon ein "shell_command:" steht, NICHT doppelt anlegen,
+#  sondern nur die beiden Zeilen darunter einruecken.
+#
+#  Achtung Pfade: HIER steht /config/..., weil Home Assistant die
+#  Befehle ausfuehrt. Im Terminal heisst derselbe Ort /homeassistant/...
+# =====================================================================
+
+shell_command:
+  # Nimmt die Daten eines ESP entgegen und schreibt eine Rohdatei.
+  # Wird von der Automation "ESP-Daten empfangen" aufgerufen.
+  # Reihenfolge der Werte: Token, ID, dann die vier Plaetze.
+  esp_speichern: >-
+    sh /config/lernecken/skripte/roh_schreiben.sh
+    '{{ token }}' '{{ id }}'
+    {{ p1 }} {{ p2 }} {{ p3 }} {{ p4 }}
+
+  # Fasst alle Rohdateien zu einer daten.json zusammen.
+  # Wird von der Automation "Daten zusammenfassen" alle 30 sekunden aufgerufen.
+  daten_sammeln: python3 /config/lernecken/skripte/sammeln.py

@@ -1,0 +1,52 @@
+# =====================================================================
+#  AUSSCHNITT fuer /config/automations.yaml
+#  ---------------------------------------------------------------
+#  Diese zwei Automationen gehoeren in die automations.yaml.
+#  Home Assistant kann Automationen NICHT aus dem Projektordner laden -
+#  deshalb liegt hier nur die Referenzfassung zum Nachschlagen und
+#  fuers Handbuch. Die laufende Version steht in automations.yaml.
+#
+#  Bequemer Weg: In HA unter Einstellungen -> Automationen die
+#  Automation anlegen und ueber "Als YAML bearbeiten" einfuegen.
+# =====================================================================
+
+# ---- 1. Empfang: ESP sendet, wir schreiben eine Rohdatei ----------
+- alias: ESP-Daten empfangen
+  id: esp_empfangen
+  # queued + max: mehrere ESPs, die gleichzeitig senden, werden
+  # nacheinander abgearbeitet statt verworfen.
+  mode: queued
+  max: 20
+  triggers:
+    - trigger: webhook
+      # Diese ID ist Teil der oeffentlichen URL:
+      #   https://<domain>/api/webhook/<ID>
+      # Etwas Langes, Zufaelliges waehlen - sie ist mitentscheidend
+      # dafuer, wer ueberhaupt senden kann.
+      webhook_id: BITTE-LANGE-ZUFAELLIGE-ID-WAEHLEN
+      allowed_methods:
+        - POST
+      # MUSS false sein, sonst kommt der ESP von aussen nicht durch.
+      local_only: false
+  actions:
+    - action: shell_command.esp_speichern
+      data:
+        # Die vom ESP gesendeten Werte. "trigger.json" greift auf den
+        # JSON-Body zu. int(0) macht aus fehlenden Werten eine 0,
+        # damit das Skript nicht abstuerzt.
+        token: "{{ trigger.json.token }}"
+        id: "{{ trigger.json.id }}"
+        p1: "{{ trigger.json.platz1 | int(0) }}"
+        p2: "{{ trigger.json.platz2 | int(0) }}"
+        p3: "{{ trigger.json.platz3 | int(0) }}"
+        p4: "{{ trigger.json.platz4 | int(0) }}"
+
+# ---- 2. Zusammenfassen: alle 30 Sekunden daten.json neu bauen -------
+- alias: Daten zusammenfassen
+  id: daten_zusammenfassen
+  mode: single
+  triggers:
+    - trigger: time_pattern
+      seconds: "/30"
+  actions:
+    - action: shell_command.daten_sammeln
