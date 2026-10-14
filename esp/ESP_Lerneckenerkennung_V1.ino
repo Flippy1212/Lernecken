@@ -3,7 +3,7 @@
 #include <HTTPClient.h>
 
 #define SERVER_URL    "https://hidd.christianwill.de/api/webhook/WEBHOOK-ID"   // Webhook url
-#define AUTH_TOKEN    "GUTes TOKEN WAEHLEN"                                       // in HA festgelegt (roh_schreiben.sh)
+#define AUTH_TOKEN    "TOKEN"                                       // in HA festgelegt (roh_schreiben.sh)
 #define DEVICE_ID     "1B131"                                                    // Geräte-ID des Esp
 #define SEND_INTERVAL 15000UL                                                    // 15 s in ms
 
@@ -19,6 +19,8 @@
 #define CHANGE_DELTA 0.5f  // ab wann ein Pixel als "verändert" gilt
 #define HUMAN_HOLD 120      // Zyklen ohne Bewegung, bevor HUMAN aufgegeben wird (1 Zyklus ist Messung + Delay)
 
+int readFails = 0, postFails = 0, lastCode = 0;
+unsigned long lostSince = 0;
 unsigned long lastSend = 0;
 int humanHold[NUM_ZONES] = { 0 };  // verbleibende Halte-Zyklen pro Zone
 
@@ -147,9 +149,8 @@ void updateZones(const float* pixels) {
             humanHold[z] = HUMAN_HOLD;  // movement, restart countdown
           } else {
             // movement, but not in human range, count down
-            if (humanHold[z] > 0) {
-            humanHold[z]--;  // stays human
-          } else zoneState[z] = CHANGING;
+            if (humanHold[z] > 0) humanHold[z]--;
+            else zoneState[z] = CHANGING;
           }
         } else {
           // no movement, count down by one
@@ -237,10 +238,15 @@ void sendStatus() {
   HTTPClient http;
   http.begin(SERVER_URL);
   http.addHeader("Content-Type", "application/json");
+  http.setTimeout(5000);
   int code = http.POST(json);
-
-  Serial.printf("POST -> %d  %s\n", code, json.c_str());
   http.end();
+
+  lastCode = code;
+  Serial.printf("POST -> %d  %s\n", code, json.c_str());
+  if (code < 200 || code >= 300) { if (++postFails > 10) ESP.restart(); }
+  else postFails = 0;
+  
 }
 
 
@@ -254,8 +260,13 @@ void setup() {
   Wire.beginTransmission(0x68);
   Serial.println(Wire.endTransmission() == 0 ? "Sensor gefunden!" : "Sensor nicht gefunden!");
 
+  WiFi.mode(WIFI_STA);
+  WiFi.persistent(false);
+  WiFi.setAutoReconnect(true);
   WiFi.begin(WIFI_SSID, WIFI_PASS);
+  unsigned long start = millis();
   while (WiFi.status() != WL_CONNECTED) {
+    if (millis() - start > 60000UL) ESP.restart();
     delay(500);
     Serial.print(".");
   }
@@ -269,26 +280,30 @@ void setup() {
 //decide if occupied, post to webhook every SEND_INTERVAL seconds
 
 
-void loop() {   
+void loop() {
 
-  if (WiFi.status() != WL_CONNECTED) {   // connection lost while active -> reconnect
-    WiFi.reconnect();
-    delay(500);
-    return;                              // skip cycle
+  if (WiFi.status() != WL_CONNECTED) {
+    if (lostSince == 0) { lostSince = millis(); WiFi.reconnect(); }
+    if (millis() - lostSince > 60000UL) ESP.restart();   // 1 min kein WLAN -> Neustart
+    delay(1000);
+    return;
   }
-                                   
+  lostSince = 0;                 // WLAN ist (wieder) da
+
   float pixels[NUM_PIXELS];
   if (!readAveraged(pixels)) {
     Serial.println("Lesefehler");
+    if (++readFails > 20) ESP.restart();               // Sensor/I2C hängt -> Neustart
     delay(500);
     return;
   }
+  readFails = 0;
 
-  updateZones(pixels);                    //pixels contains short avg of values
-  printZoneGrid(pixels);                  //print temp vals etc. for debugging (optional)
+  updateZones(pixels);
+  printZoneGrid(pixels);
 
-  if (millis() - lastSend >= SEND_INTERVAL) {   //send to server if lastsend is older than SEND_INTERVAL
-    lastSend = millis();  
+  if (millis() - lastSend >= SEND_INTERVAL) {
+    lastSend = millis();
     sendStatus();
   }
   delay(500);
