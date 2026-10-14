@@ -45,10 +45,3 @@ heltec-wifi-lora32-v3:
   url:
     value: https://heltec.org/project/wifi-lora-32-v3/
     date: 2026-09-02
-
-alter-projektbericht:
-  type: report
-  title: "Studienprojekt: Lerneckenfinder"
-  author: ["Farrah, Riadh", "Chamam, Mohamed Dhia", "Saidani, Slim"]      # Autor(en) des alten Berichts
-  date: 2025                          
-  note: "Unveröffentlichter Studienprojektbericht, Hochschule Hannover"

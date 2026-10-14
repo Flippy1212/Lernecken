@@ -146,8 +146,10 @@ void updateZones(const float* pixels) {
           if (humanTemp) {
             humanHold[z] = HUMAN_HOLD;  // movement, restart countdown
           } else {
-            zoneState[z] = CHANGING;  // movement, but not in human range, changing
-            humanHold[z] = 0;
+            // movement, but not in human range, count down
+            if (humanHold[z] > 0) {
+            humanHold[z]--;  // stays human
+          } else zoneState[z] = CHANGING;
           }
         } else {
           // no movement, count down by one

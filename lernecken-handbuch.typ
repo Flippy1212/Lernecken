@@ -16,16 +16,22 @@
 
 #v(1em)
 
-Am Standort Fischerhof der Hochschule Hannover gibt es Lernecken, welche über dem Campus verteilt sind. Diese Lernecken bieten eine Möglichkeit, um mit Kommilitonen oder alleine an der Hochschule  zu lernen. Die Verteilung der Lernecken über mehrere Stockwerke und Gebäude, sowie eine hohe Auslastung zu Stoßzeiten führen jedoch dazu, dass viel Zeit mit der Suche einer leeren Lernecken verschwendet wird. \
-Um die Suche leichter zu machen und eine Auswertung der momentanen Auslastung zu ermöglichen, wird eine Belegungserkennung der Lernecken im Rahmen eines Studienprojekts vorgestellt. \
+Am Standort Fischerhof der Hochschule Hannover gibt es Lernecken, welche über dem Campus verteilt sind. Diese Lernecken bieten eine Möglichkeit, um mit Kommilitonen oder alleine an der Hochschule  zu lernen. Die Verteilung der Lernecken über mehrere Stockwerke und Gebäude, sowie eine hohe Auslastung zu Stoßzeiten führen jedoch dazu, dass viel Zeit mit der Suche einer leeren Lernecke verschwendet wird. \
+Um die Suche leichter zu machen und eine Auswertung der momentanen Auslastung zu ermöglichen, wird eine _Belegungserkennung der Lernecken_ im Rahmen eines Studienprojekts vorgestellt. \
 Zweck des Projekts ist es, Studierenden auf einer Webseite anzuzeigen, welche Sitzplätze in welcher Lernecke, welchem Gebäude und welchem Stockwerk frei sind. Die Belegung wird pro Lernecke von einem Infrarot-Sensor erfasst, zentral gesammelt und laufend aktualisiert dargestellt. Dieses Handbuch beschreibt den Systemaufbau.
 
-#v(1em)
+
+#figure(
+  image("Bilder/Sensor_weitwinkel.jpg", width: 90%),
+  caption: [Platzierung des Belegungssensors samt ESP-32 über der Lernecke 1B.1.31.]
+)
+
+#pagebreak()
 #outline(indent: auto)
 #pagebreak()
 
 = Einleitung
-Ein ESP-32 (ESP) misst mit einem Infrarot-Sensor pro Lernecke die Belegung aller vier Sitzplätze und schickt sie an Home Assistant (HA). HA sammelt die Werte aller Lernecken in einer Datei, und eine öffentlich zugängliche Webseite zeigt sie als grün (frei) oder rot (besetzt) an.
+Ein ESP-32 (ESP) misst mit einem Infrarot-Sensor pro Lernecke die Belegung aller vier Sitzplätze und schickt sie an Home Assistant (HA). HA sammelt die Werte aller Lernecken in einer Datei, und eine öffentlich zugängliche Webseite zeigt die Plätze als grün (frei) oder rot (besetzt) an.
 
 Grundgedanke: Zwischen dem ESP und der Webseite steht immer eine Datei
 (`daten.json`). Dadurch lässt sich jeder Teil einzeln ändern oder testen, ohne
@@ -42,14 +48,21 @@ Die benutzte Hardware beinhaltet folgende Bauteile:
 - Kabel zur Verdrahtung
 - 3D-gedrucktes Gehäuse (siehe Lernecke)
 
-Die Hardware ist an der Lernecke 1B.1.31 montiert (oben) und kann dort genauer angesehen werden. Es können aber auch andere Optionen überlegt werden. \
+Die Hardware ist an der Lernecke 1B.1.31 montiert (oben) und kann dort genauer angesehen werden. Es können aber auch andere Optionen zur Orientierung oder Befestigung überlegt werden. \
+
+#figure(
+  image("Bilder/heltec_v3_amg8833_verdrahtung.jpg"),
+  caption: [Verdrahtung des ESP32 mit dem AMG8833.]
+)
+
+
 Bis jetzt ist nur diese eine Lernecke angebunden, andere Lernecken auf der Website sind nur Platzhalter.
 
 
 = Datenweg
 Die Daten durchlaufen folgende Schritte:
 
-- Der ESP sendet die Belegung einer Lernecke per HTTPS an einen Home Assistant Webhook (durch den Cloudflare-Tunnel).
+- Der ESP sendet die Belegung einer Lernecke per HTTPS an einen Home Assistant Webhook (durch einen Cloudflare-Tunnel).
 - Home Assistant nimmt die Daten an und ruft das Skript `roh_schreiben.sh` auf.
 - Das Skript schreibt eine Rohdatei je Lernecke (je ESP) nach `/config/www/roh/<ID-des-ESPs>.json`.
 - Nach einem Zeitintervall fasst `sammeln.py` alle Rohdateien zu einer `daten.json` zusammen.
@@ -63,14 +76,14 @@ Erkennungslogik auf dem ESP behandelt, gesendet wird nur die Platzbelegung.
 == IR-Sensor AMG8833
 Um die Belegung einer Lernecke zu erkennen, wird ein Infrarot-Sensor benutzt, der 
 AMG8833 von Panasonic, welcher auf einer Platine montiert ist @amg8833-seeed. Dieser besitzt eine Auflösung von 8x8 Pixeln, mit einem Blickwinkel von 60°. \
-Die Infrarot Information kann benutzt werden, um die Hitzesignatur von Menschen zu erkennen, auch deren genaue Position kann damit ermittelt werden. Trotzdem werden keine persönlichen Daten gesammelt, da die Auslösung des Sensors sehr gering ist. Als Referenz wurde eine Adafruit AMG8833 Datasheet genommen @amg8833-datenblatt. Das Auslesen der Daten ist darin beschrieben.
-Um die Messungenauigkeit zu verringern, wird immer das Mittel aus zehn Messungen des Sensors gebildet und als eine Messung behandelt.
+Die Infrarot Information kann genutzt werden, um die Hitzesignatur von Menschen zu erkennen, auch deren genaue Position kann damit ermittelt werden. Trotzdem werden keine persönlichen Daten gesammelt, da die Auflösung des Sensors sehr gering ist. Als Referenz wurde eine Adafruit AMG8833 Datasheet genommen @amg8833-datenblatt. Das Auslesen der Daten ist darin beschrieben.
+Um die Messungenauigkeit zu verringern, wird immer ein Mittel aus mehreren Messungen des Sensors gebildet und als eine Messung behandelt. \ 
 
 
 == Belegungserkennung
 
-Die Belegungserkennung wurde in Arduino mit C++ programmiert. Das Programm beinhaltet dabei die typischen Setup() und Loop() Funktionen, Setup() wird ein Mal zum Programmstart ausgeführt, Loop() immer wiederholend. \
-Die Logik ist insgesamt recht simpel: Die 64 Pixel des AMG8833 werden dabei in vier Zonen aufgeteilt, welche die vier möglichen Sitzplätze darstellen. Nach jeder Messung wird jeder Zone ein Zustand zugeordnet. Die drei möglichen Zustände sind: \ 
+Die Belegungserkennung wurde in der Arduino IDE mit C++ programmiert. Das Programm beinhaltet dabei die typischen Setup() und Loop() Funktionen, Setup() wird einmalig zum Programmstart ausgeführt, Loop() immer wiederholend. \
+Die Logik ist insgesamt recht simpel: Die 64 Pixel des AMG8833 werden dabei in vier Zonen aufgeteilt, welche die vier möglichen Sitzplätze darstellen (vorne links, hinten links, vorne rechts, hinten rechts). Nach jeder Messung wird jeder Zone ein Zustand zugeordnet. Die drei möglichen Zustände sind: \ 
 EMPTY, CHANGING, und HUMAN. \
 Alle Zonen starten im Zustand EMPTY. Bei jeder Messung werden die Temperaturwerte mit der vorherigen Messung verglichen. Wenn der Unterschied größer als ein bestimmter Wert (CHANGE_DELTA = 0.5) ist, wird das Bool changed auf true gesetzt.
 Wenn EMPTY & changed = true, dann wird der Zustand zu CHANGING. Wenn zusätzlich die maximale Temperatur der Zone innerhalb der menschlichen Temperatur (HUMAN_MIN & HUMAN_MAX) liegt, wird der Zustand zu HUMAN, die Zone gilt als belegt. Erst, wenn über längere Zeit keine Veränderung der Temperatur mehr erkannt wurde, wird die Zone wieder zu EMPTY. Dies wird über HUMAN_HOLD (120) gesteuert. Die Logik soll dazu dienen, den Übergang einer leeren Zone (kalt, unverändert) zu einer besetzten Zone (warm, verändert) verlässlich zu erkennen. Bei wenig Bewegung wird die Zone aber nicht direkt freigegeben, was eine richtige Belegung bei wenig Veränderung ermöglicht. 
@@ -90,18 +103,18 @@ Beispiel-JSON:
 
 
 #figure(
-  image("Bilder/amg8833_neben_sitzplatzansicht_v2.png"),
-  caption: [Bild zur Darstellung der relativen Orientierung des Sensors. Die verwirrende Reihenfolge ist ein Resultat der festen Montage von Sensor auf Platine und begrenzten Möglichkeit der Ausrichtung.]
+  image("Bilder/amg8833_ausgerichtet (1).jpg"),
+  caption: [Bild zur Darstellung der relativen Orientierung des Sensors. Die gedrehte Pixelreihenfolge ergibt sich aus der Lage vom Sensor im Raum. "Vorne" bedeutet am Gang.]
 )
 
 
 = Home Assistant Funktionsweise
 Home Assistant nimmt die Daten der ESPs entgegen, legt sie ab und fasst sie
 zusammen. Die Skripte liegen unter `/config/lernecken/skripte`. Die öffentlichen
-Dateien liegen unter `/config/www` und `/config/www/roh`.
+Dateien liegen unter `/config/www` und `/config/www/roh`. WICHTIG: Diese Daten sind theoretisch für jeden einsehbar, es sollten also keine Skripte oder Ähnliches dort gespeichert werden.
 
 == Wo sind die Dateien
-Achtung: In 
+
 #table(
   columns: (1fr, 1.4fr),
   align: (left, left),
@@ -212,10 +225,15 @@ Die beiden Einträge:
 - ESP aufsetzen und in ESP_Lerneckenerkennung_V1.ino mit Geräte-ID und globalem Token versehen.
 - In `/config/www/index.html` im Block STRUKTUR einen Eintrag ergänzen (beim richtigen Gebäude und Stockwerk). Das Feld `esp` muss der ID entsprechen, die in 
   ESP_Lerneckenerkennung_V1.ino steht.
-- Sitzplatzreihenfolge zur Ausrichtung des Sensors kalibrieren.
+- In `roh_schreiben.sh` einen neuen Block mit neuem ESP und Token erstellen.
+- Sitzplatzreihenfolge zur Ausrichtung des Sensors kalibrieren:
+  - Plätze belegen
+  - Schauen welche Plätze auf der Website angezeigt werden
+  - Reihenfolge der Zonen im ESP Skript oder Reihenfolge in index.html ändern
 
 Mehr ist nicht nötig. Die Skripte und Automationen bleiben unverändert, sie
 arbeiten für jede Lernecke gleich.
+Die bisher vergebenen IDs sind nur Platzhalter, sie können ausgetauscht werden. Es macht jedoch Sinn, sich an den Raumnummern zu orientieren.
 
 = Wichtige Werte zum Anpassen
 Diese Werte bestimmen das Verhalten und lassen sich ändern (das ändern des ESP Skripts kann dazu führen, dass Personen nicht mehr erkannt werden):
@@ -261,8 +279,8 @@ folgenden Probleme direkt sichtbar.
   [Legt sich nach 1-2 Zyklen; steht "Baseline-Frame gesetzt." im Log?],
 
   [Webseite zeigt "keine Daten", obwohl ESP sendet],
-  [(a) Zeitstempel-Ausnahme in `sammeln.py`; (b) `AUSFALL_SEK` zu knapp],
-  [HA-Log auf `sammeln:`-Meldung; `AUSFALL_SEK` deutlich > `SEND_INTERVAL` (15 s) + Sammeltakt (2 min)],
+  [`AUSFALL_SEK` zu knapp, vieles möglich],
+  [`AUSFALL_SEK` deutlich > `SEND_INTERVAL` (15 s) + Sammeltakt],
 
   ["gesendet", kommt aber nicht an],
   [Token, Webhook-ID oder Automation],
